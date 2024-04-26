@@ -1595,6 +1595,73 @@ static ssize_t proc_set_monitor_chan_override(struct file *file, const char __us
 	return count;
 }
 
+static int proc_get_edcca_threshold_jaguar3_override(struct seq_file *m, void *v)
+{
+	struct net_device *dev = m->private;
+	_adapter *padapter = (_adapter *)rtw_netdev_priv(dev);
+	struct registry_priv	*pregpriv = &padapter->registrypriv;
+
+	RTW_PRINT_SEL(m, "Set EDCCA Threshold Override For Realtek Jaguar3 Series (8723F/8735B/8730A/8822C/8812F/8197G/8822E/8198F/8814B/8814C/8733B)\n");
+	RTW_PRINT_SEL(m, "Github: libc0607\n");
+	RTW_PRINT_SEL(m, "\n");
+	RTW_PRINT_SEL(m, "Usage: echo \"<en> <dBm_l2h>\" > edcca_threshold_jaguar3_override\n");
+	RTW_PRINT_SEL(m, "\ten: 0-disable, 1-enable\n");
+	RTW_PRINT_SEL(m, "\tdBm_l2h: Energy CCA level in dBm, range: [-100, 7]; it's -72dBm (0xB0-248) by default from my adaptor's register.\n");
+	RTW_PRINT_SEL(m, "I don't know the actual range since I don't have the detailed datasheet with register definitions, but in theory it can be tuned in +7dBm ~ -240dBm. A threshold below -100dBm seems make no sense so I manually disabled them.\n");
+	RTW_PRINT_SEL(m, "Note: the H2L value is automatically set with 8dBm (default) lower as hysteresis.\n");
+	RTW_PRINT_SEL(m, "Note 2: It's a bit similar to the 'thresh62' patch in ath9k.\n");
+	RTW_PRINT_SEL(m, "\n");
+	RTW_PRINT_SEL(m, "e.g.  To set the threshold to l2h=-40dBm (then h2l=-48dBm), use \n");
+	RTW_PRINT_SEL(m, "\techo \"1 -40\" > edcca_threshold_jaguar3_override\n");
+	RTW_PRINT_SEL(m, "\n");
+	RTW_PRINT_SEL(m, "Disclaimer: There's no guarantee on performance. \n");
+	RTW_PRINT_SEL(m, "This operation may damage your hardware.\n");
+	RTW_PRINT_SEL(m, "You should obey the law, and use it at your own risk.\n");
+
+	return 0;
+}
+
+static ssize_t proc_set_edcca_threshold_jaguar3_override(struct file *file, const char __user *buffer, size_t count, loff_t *pos, void *data)
+{
+	struct net_device *dev = data;
+	_adapter *padapter = (_adapter *)rtw_netdev_priv(dev);
+	struct registry_priv *pregpriv = &padapter->registrypriv;
+	char tmp[32];
+	s32 edcca_thresh = -72;
+	u8 edcca_thresh_en = 0;
+
+	if (!padapter)
+		return -EFAULT;
+
+	if (count < 2) {
+		RTW_INFO("edcca_threshold_jaguar3_override Argument error. \n");
+		return -EFAULT;
+	}
+
+	if (count > sizeof(tmp)) {
+		rtw_warn_on(1);
+		return -EFAULT;
+	}
+
+	if (buffer && !copy_from_user(tmp, buffer, count)) {
+		int num = sscanf(tmp, "%u %d", &edcca_thresh_en, &edcca_thresh);
+		if (num < 1)
+			return count;
+	}
+
+	if (edcca_thresh > 7 || edcca_thresh < -100) {
+		RTW_INFO("edcca_threshold_jaguar3_override dBm_l2h out of range: %d\n", edcca_thresh);
+		return count;
+	}
+
+	RTW_INFO("Write to edcca_threshold_jaguar3_override: EDCCA override %s, L2H threshold = %ddBm\n", (edcca_thresh_en==1)? "enabled": "disabled", edcca_thresh);
+
+	pregpriv->edcca_thresh_override_en = edcca_thresh_en;
+	pregpriv->edcca_thresh_l2h_override = (s8)edcca_thresh;
+
+	return count;
+}
+
 static int proc_get_country_code(struct seq_file *m, void *v)
 {
 	struct net_device *dev = m->private;
@@ -5565,6 +5632,7 @@ const struct rtw_proc_hdl adapter_proc_hdls[] = {
 	RTW_PROC_HDL_SSEQ("country_code", proc_get_country_code, proc_set_country_code),
 	RTW_PROC_HDL_SSEQ("chan_plan", proc_get_chan_plan, proc_set_chan_plan),
 	RTW_PROC_HDL_SSEQ("monitor_chan_override", proc_get_monitor_chan_override, proc_set_monitor_chan_override),
+	RTW_PROC_HDL_SSEQ("edcca_threshold_jaguar3_override", proc_get_edcca_threshold_jaguar3_override, proc_set_edcca_threshold_jaguar3_override),
 	RTW_PROC_HDL_SSEQ("cap_spt_op_class_ch", proc_get_cap_spt_op_class_ch, proc_set_cap_spt_op_class_ch),
 	RTW_PROC_HDL_SSEQ("reg_spt_op_class_ch", proc_get_reg_spt_op_class_ch, proc_set_reg_spt_op_class_ch),
 	RTW_PROC_HDL_SSEQ("cur_spt_op_class_ch", proc_get_cur_spt_op_class_ch, proc_set_cur_spt_op_class_ch),
