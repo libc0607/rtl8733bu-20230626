@@ -1532,6 +1532,69 @@ static ssize_t proc_set_chan_plan(struct file *file, const char __user *buffer, 
 	return count;
 }
 
+static int proc_get_monitor_chan_override(struct seq_file *m, void *v)
+{
+	struct net_device *dev = m->private;
+	_adapter *padapter = (_adapter *)rtw_netdev_priv(dev);
+	struct registry_priv	*pregpriv = &padapter->registrypriv;
+
+	RTW_PRINT_SEL(m, "Use 10MHz Bandwidth & Unlock Illegal Frequency from 5080MHz to 6165MHz\n");
+	RTW_PRINT_SEL(m, "Github: libc0607/rtl8733bu-20230626\n");
+	RTW_PRINT_SEL(m, "\n");
+	RTW_PRINT_SEL(m, "Usage: echo \"<chan> <bw>\" > monitor_chan_override\n");
+	RTW_PRINT_SEL(m, "chan:	16~253, freq=channel*5+5000\n");
+	RTW_PRINT_SEL(m, "bw:	10-10MHz, 20-20MHz\n");
+	RTW_PRINT_SEL(m, "\n");
+	RTW_PRINT_SEL(m, "e.g.  To transmit in 6005MHz with 10MHz BW, use \n");
+	RTW_PRINT_SEL(m, "\techo \"201 10\" > monitor_chan_override\n");
+	RTW_PRINT_SEL(m, "\n");
+	RTW_PRINT_SEL(m, "Disclaimer: Some chip may not lock on some frequency. There's no guarantee on performance. \n");
+	RTW_PRINT_SEL(m, "The unlocked frequency may damage your hardware.\n");
+	RTW_PRINT_SEL(m, "You should obey the law, and use it at your own risk.\n");
+
+
+	return 0;
+}
+
+static ssize_t proc_set_monitor_chan_override(struct file *file, const char __user *buffer, size_t count, loff_t *pos, void *data)
+{
+	struct net_device *dev = data;
+	_adapter *padapter = (_adapter *)rtw_netdev_priv(dev);
+	char tmp[32];
+	u32 chan = 149;
+	u32 bw = 20;
+	u32 offset = 0;
+
+	if (!padapter)
+		return -EFAULT;
+
+	if (count < 2) {
+		RTW_INFO("monitor_chan_override Argument error. \n");
+		return -EFAULT;
+	}
+
+	if (count > sizeof(tmp)) {
+		rtw_warn_on(1);
+		return -EFAULT;
+	}
+
+	if (buffer && !copy_from_user(tmp, buffer, count)) {
+		int num = sscanf(tmp, "%u %u", &chan, &bw);
+		if (num < 1)
+			return count;
+	}
+
+	if ((bw != 10) && (bw != 20)) {
+		RTW_INFO("monitor_chan_override Bandwidth error: %u\n", bw);
+		return count;
+	}
+
+	RTW_INFO("Write to monitor_chan_override: chan=%d, bw=%d, offset=%d\n", chan, bw, offset);
+	rtw_set_chbw_cmd(padapter, (u8)chan, (bw==10)? 6: 0, (u8)offset, RTW_CMDF_WAIT_ACK);
+
+	return count;
+}
+
 static int proc_get_country_code(struct seq_file *m, void *v)
 {
 	struct net_device *dev = m->private;
@@ -5501,6 +5564,7 @@ const struct rtw_proc_hdl adapter_proc_hdls[] = {
 #endif
 	RTW_PROC_HDL_SSEQ("country_code", proc_get_country_code, proc_set_country_code),
 	RTW_PROC_HDL_SSEQ("chan_plan", proc_get_chan_plan, proc_set_chan_plan),
+	RTW_PROC_HDL_SSEQ("monitor_chan_override", proc_get_monitor_chan_override, proc_set_monitor_chan_override),
 	RTW_PROC_HDL_SSEQ("cap_spt_op_class_ch", proc_get_cap_spt_op_class_ch, proc_set_cap_spt_op_class_ch),
 	RTW_PROC_HDL_SSEQ("reg_spt_op_class_ch", proc_get_reg_spt_op_class_ch, proc_set_reg_spt_op_class_ch),
 	RTW_PROC_HDL_SSEQ("cur_spt_op_class_ch", proc_get_cur_spt_op_class_ch, proc_set_cur_spt_op_class_ch),

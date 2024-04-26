@@ -1068,7 +1068,7 @@ phydm_sco_trk_fc_setting_8733b(struct dm_struct *dm, u8 central_ch)
 	} else if (central_ch >= 1 && central_ch <= 10) {
 		/* @n:42, s:38 */
 		odm_set_bb_reg(dm, R_0xc30, 0xfff, 0x9aa);
-	} else if (central_ch >= 36 && central_ch <= 51) {
+	} else if (central_ch >= 16 && central_ch <= 51) {
 		/* @n:20, s:18 */
 		odm_set_bb_reg(dm, R_0xc30, 0xfff, 0x494);
 	} else if (central_ch >= 52 && central_ch <= 55) {
@@ -1120,10 +1120,10 @@ config_phydm_switch_channel_8733b(struct dm_struct *dm, u8 central_ch)
 		return true;
 	}
 
-	if ((central_ch > 14 && central_ch < 36) ||
-	    (central_ch > 64 && central_ch < 100) ||
+	if ((central_ch > 14 && central_ch < 16) ||
+	    (central_ch > 96 && central_ch < 100) ||
 	    (central_ch > 144 && central_ch < 149) ||
-	    central_ch > 177) {
+	    central_ch > 253) {
 		PHYDM_DBG(dm, ODM_PHY_CONFIG, "Error CH:%d\n", central_ch);
 		return false;
 	}

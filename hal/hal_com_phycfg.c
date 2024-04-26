@@ -1246,7 +1246,7 @@ bypass_2g:
 				continue;
 
 			upper = pwr_info_5g->IndexBW40_Base[rfpath][group];
-			lower = pwr_info_5g->IndexBW40_Base[rfpath][group + 1];
+			lower = pwr_info_5g->IndexBW40_Base[rfpath][group+1>13? group: group+1];
 			hal_data->Index5G_BW80_Base[rfpath][ch_idx] = (upper + lower) / 2;
 		}
 
