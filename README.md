@@ -5,6 +5,7 @@ The modules have an ultra-small size (\~13mm\*12mm), \~2W total power consumptio
 Check out the original driver tarball from the module vendors at [here](https://github.com/libc0607/rtl8733bu-20230626/blob/c42db387516b28bbd1fde8dca9b57788c046fcd0/RTL8733BU_WiFi_linux_v5.13.0.1-112-g10248f4f3_COEX20230616-330e.20230703.tar.gz). Android 4~12 driver is included also, but I have no idea how to use them.   
 
 Still working in progress.   
+ - OpenIPC integration: done, see [here](https://github.com/libc0607/openipc-firmware/commit/6c452ecab5e4490241aa5850f610767a845b919d)  
  - Packet injection: seems working, needs more test  
  - Monitor (RX): good  
  - Set TX power by ```iw```: supported, validated by my SDR receiver   
