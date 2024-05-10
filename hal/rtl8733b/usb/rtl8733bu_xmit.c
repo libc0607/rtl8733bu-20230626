@@ -131,7 +131,7 @@ static s32 update_txdesc(struct xmit_frame *pxmitframe, u8 *pmem, s32 sz, u8 bag
 		// ?
 		//SET_TX_DESC_DISABLE_FB_8733(ptxdesc, 1); // svpcom: ?
 		SET_TX_DESC_DISDATAFB_8733B(ptxdesc, 1);   // ?
-		//SET_TX_DESC_DISRTSFB_8733B(ptxdesc, 1);	   // ?
+		SET_TX_DESC_DISRTSFB_8733B(ptxdesc, 1);	   // See 88x2eu driver issue #2
 
 		SET_TX_DESC_USE_RATE_8733B(ptxdesc, 1);
 		SET_TX_DESC_DATARATE_8733B(ptxdesc, MRateToHwRate(pattrib->rate));
