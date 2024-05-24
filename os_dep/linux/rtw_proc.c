@@ -5397,11 +5397,41 @@ static ssize_t proc_set_amsdu_mode(struct file *file, const char __user *buffer,
 
 }
 
+static int proc_get_thermal_state(struct seq_file *m, void *v)
+{
+	struct net_device *dev = m->private;
+	_adapter *padapter = (_adapter *)rtw_netdev_priv(dev);
+        struct dm_struct *p_dm_odm = adapter_to_phydm(padapter);
+        HAL_DATA_TYPE *pHalData = GET_HAL_DATA(padapter);
+
+        u8 rx_cnt = rf_type_to_rf_rx_cnt(pHalData->rf_type);
+        int thermal_value = 0;
+        int thermal_offset = 0;
+        u32 thermal_reg_mask = 0;
+
+        thermal_reg_mask = 0x007e; // in _dpk_thermal_read_8733b()
+        
+        phy_set_rf_reg(padapter, 0, 0x42, BIT19, 0x1);
+        phy_set_rf_reg(padapter, 0, 0x42, BIT19, 0x0);
+        phy_set_rf_reg(padapter, 0, 0x42, BIT19, 0x1);
+
+        rtw_usleep_os(15);    // 15us in _dpk_thermal_read_8733b()
+        
+        thermal_value = phy_query_rf_reg(padapter, 0, 0x42, thermal_reg_mask);
+        thermal_offset = pHalData->eeprom_thermal_meter;
+        
+        RTW_PRINT_SEL(m, "rf_path: 0, thermal_value: %d, offset: %d, mask=%x\n", thermal_value, thermal_offset, thermal_reg_mask);
+        
+        return 0;
+}
+
+
 /*
 * rtw_adapter_proc:
 * init/deinit when register/unregister net_device
 */
 const struct rtw_proc_hdl adapter_proc_hdls[] = {
+        RTW_PROC_HDL_SSEQ("thermal_state", proc_get_thermal_state, NULL),
 #if RTW_SEQ_FILE_TEST
 	RTW_PROC_HDL_SEQ("seq_file_test", &seq_file_test, NULL),
 #endif
