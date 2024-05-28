@@ -5397,6 +5397,45 @@ static ssize_t proc_set_amsdu_mode(struct file *file, const char __user *buffer,
 
 }
 
+static ssize_t proc_set_thermal_state(struct file *file, const char __user *buffer, size_t count, loff_t *pos, void *data)
+{
+	struct net_device *dev = data;
+	_adapter *padapter = (_adapter *)rtw_netdev_priv(dev);
+	struct registry_priv *pregpriv = &padapter->registrypriv;
+	HAL_DATA_TYPE *pHalData = GET_HAL_DATA(padapter);
+	char tmp[32];
+	u32 offset_temp;
+
+	if (!padapter)
+		return -EFAULT;
+
+	if (count < 1) {
+		RTW_INFO("Set thermal_state Argument error. \n");
+		return -EFAULT;
+	}
+
+	if (count > sizeof(tmp)) {
+		rtw_warn_on(1);
+		return -EFAULT;
+	}
+
+	if (buffer && !copy_from_user(tmp, buffer, count)) {
+		int num = sscanf(tmp, "%u", &offset_temp);
+		if (num < 1)
+			return count;
+	}
+
+	if (offset_temp > 70) {
+		RTW_INFO("Set thermal_state Argument range error. \n");
+		return -EFAULT;
+	}
+
+	RTW_INFO("Write to thermal_state offset tempC : %d\n", offset_temp);
+	pHalData->eeprom_thermal_offset_temperature = (u8)offset_temp;
+
+	return count;
+}
+
 static int proc_get_thermal_state(struct seq_file *m, void *v)
 {
 	struct net_device *dev = m->private;
@@ -5408,8 +5447,12 @@ static int proc_get_thermal_state(struct seq_file *m, void *v)
         int thermal_value = 0;
         int thermal_offset = 0;
         u32 thermal_reg_mask = 0;
+	int temperature_offset = 40;	// measured value. see comment in 8812eu commit/5b7a66d for details
+        int temperature = 0; 
 
         thermal_reg_mask = 0x007e; // in _dpk_thermal_read_8733b()
+	temperature_offset = (pHalData->eeprom_thermal_offset_temperature==0)? 
+				temperature_offset: pHalData->eeprom_thermal_offset_temperature;
         
         phy_set_rf_reg(padapter, 0, 0x42, BIT19, 0x1);
         phy_set_rf_reg(padapter, 0, 0x42, BIT19, 0x0);
@@ -5419,9 +5462,10 @@ static int proc_get_thermal_state(struct seq_file *m, void *v)
         
         thermal_value = phy_query_rf_reg(padapter, 0, 0x42, thermal_reg_mask);
         thermal_offset = pHalData->eeprom_thermal_meter;
-        
-        RTW_PRINT_SEL(m, "rf_path: 0, thermal_value: %d, offset: %d, mask=%x\n", thermal_value, thermal_offset, thermal_reg_mask);
-        
+	temperature = (((thermal_value-thermal_offset) *5)/2) + temperature_offset;
+
+        RTW_PRINT_SEL(m, "rf_path: 0, thermal_value: %d, offset: %d, temperature: %d\n", thermal_value, thermal_offset, temperature);
+	
         return 0;
 }
 
@@ -5431,7 +5475,7 @@ static int proc_get_thermal_state(struct seq_file *m, void *v)
 * init/deinit when register/unregister net_device
 */
 const struct rtw_proc_hdl adapter_proc_hdls[] = {
-        RTW_PROC_HDL_SSEQ("thermal_state", proc_get_thermal_state, NULL),
+        RTW_PROC_HDL_SSEQ("thermal_state", proc_get_thermal_state, proc_set_thermal_state),
 #if RTW_SEQ_FILE_TEST
 	RTW_PROC_HDL_SEQ("seq_file_test", &seq_file_test, NULL),
 #endif
