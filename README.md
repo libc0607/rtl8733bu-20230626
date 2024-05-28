@@ -19,7 +19,8 @@ Still working in progress. Needs more tests.
  - Monitor (RX): good   
  - Set TX power by ```iw```: supported, validated by my SDR receiver. Should set ```rtw_tx_pwr_by_rate=0 rtw_tx_pwr_lmt_enable=0``` when ```insmod```
  - Set Wi-Fi regd in OS: Set ```rtw_regd_src=1``` when ```insmod```
- - 10MHz BW: Not claimed to be supported by Realtek, no output when testing either  
+ - 10MHz BW: Not claimed to be supported by Realtek, no output when testing either, setting reg (used in ```cfg_mac_clk_87xx```) not working 
  - Unlock center frequency: All frequencies between 5080MHz ~ 6030MHz (5MHz step) in 5GHz band. They really cost-downed it too much  
  - EDCCA Threshold: merged, not tested yet  
- - SIFS, Slot time, etc.: TBD  
+ - SIFS, Slot time, etc.: TBD
+ - Temperature readout: working, see ```thermal_state``` in procfs
