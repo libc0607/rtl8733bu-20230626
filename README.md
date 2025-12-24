@@ -4,6 +4,7 @@ This repository will be my playground (mainly for dirty low-level hacks. so, no 
 OpenIPC had already added this driver, see [OpenIPC/realtek-wlan](https://github.com/OpenIPC/realtek-wlan/tree/rtl8733bu_fpv).  
 
 Download pre-built OpenIPC firmware with this driver integrated [here](https://github.com/libc0607/openipc-firmware/releases/tag/latest) to help test new features.  
+Installation: see [installation](https://github.com/libc0607/rtl88x2eu-20230815?tab=readme-ov-file#installation)  
 
 Check out the original driver tarball from the module vendors at [here](https://github.com/libc0607/rtl8733bu-20230626/blob/c42db387516b28bbd1fde8dca9b57788c046fcd0/RTL8733BU_WiFi_linux_v5.13.0.1-112-g10248f4f3_COEX20230616-330e.20230703.tar.gz).   
 Android 4~12 driver is included also, but I have no idea how to use them.   
@@ -25,7 +26,8 @@ Tested:
  - Unlock center frequency: All frequencies between 5080MHz ~ 6030MHz (5MHz step) in 5GHz band. They really cost-downed it too much
  - Temperature readout: working, see ```thermal_state``` in procfs
  - dkms install
- - Channel state scanning (ACS) -- see [here](https://github.com/libc0607/rtl88x2eu-20230815?tab=readme-ov-file#noise-monitor-acs) for usage 
+ - Channel state scanning (ACS) -- see [here](https://github.com/libc0607/rtl88x2eu-20230815?tab=readme-ov-file#noise-monitor-acs) for usage
+ - For reusing chips from dismantled Wi-Fi modules, check my schematic [here](https://github.com/user-attachments/files/24323819/SCH_RTL873xBU_Demo_2025-12-23.pdf) (**USE IT AT YOUR OWN RISK** -- It works in my test, but it's NOT the official design)
 
 Need test or can be further investigated:
  - EDCCA Threshold: merged, not tested yet  
