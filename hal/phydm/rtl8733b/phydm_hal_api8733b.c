@@ -1275,39 +1275,39 @@ config_phydm_switch_bandwidth_8733b(struct dm_struct *dm, u8 pri_ch,
 	case CHANNEL_WIDTH_5:
 	case CHANNEL_WIDTH_10:
 	case CHANNEL_WIDTH_20:
-		if (bw == CHANNEL_WIDTH_5) {
+		//if (bw == CHANNEL_WIDTH_5) {
 			/* @RX DFIR*/
-			odm_set_bb_reg(dm, R_0x810, 0x3ff0, 0x19b);
+			//odm_set_bb_reg(dm, R_0x810, 0x3ff0, 0x19b);
 
 			/* @small BW:[7:6]=0x1 */
 			/* @TX pri ch:[11:8]=0x0, RX pri ch:[15:12]=0x0 */
-			odm_set_bb_reg(dm, R_0x9b0, 0xffc0, 0x1);
+			//odm_set_bb_reg(dm, R_0x9b0, 0xffc0, 0x1);
 
 			/* @DAC clock = 40M clock for BW5 */
-			odm_set_bb_reg(dm, R_0x9b4, 0x00000700, 0x1);
+			//odm_set_bb_reg(dm, R_0x9b4, 0x00000700, 0x1);
 
 			/* @ADC clock = 40M clock for BW5 */
-			odm_set_bb_reg(dm, R_0x9f0, 0xf, 0xa);
+			//odm_set_bb_reg(dm, R_0x9f0, 0xf, 0xa);
 
 			/* TX BPSK/QPSK BandEdge configure */
-			odm_set_bb_reg(dm, R_0x81c, 0xf, 0x0);
-		} else if (bw == CHANNEL_WIDTH_10) {
+			//odm_set_bb_reg(dm, R_0x81c, 0xf, 0x0);
+		//} else if (bw == CHANNEL_WIDTH_10) {
 			/* @RX DFIR*/
-			odm_set_bb_reg(dm, R_0x810, 0x3ff0, 0x19b);
+			//odm_set_bb_reg(dm, R_0x810, 0x3ff0, 0x19b);
 
 			/* @small BW:[7:6]=0x2 */
 			/* @TX pri ch:[11:8]=0x0, RX pri ch:[15:12]=0x0 */
-			odm_set_bb_reg(dm, R_0x9b0, 0xffc0, 0x2);
+			//odm_set_bb_reg(dm, R_0x9b0, 0xffc0, 0x2);
 
 			/* @DAC clock = 80M clock for BW10 */
-			odm_set_bb_reg(dm, R_0x9b4, 0x00000700, 0x2);
+			//odm_set_bb_reg(dm, R_0x9b4, 0x00000700, 0x2);
 
 			/* @ADC clock = 80M clock for BW10 */
-			odm_set_bb_reg(dm, R_0x9f0, 0xf, 0xb);
+			//odm_set_bb_reg(dm, R_0x9f0, 0xf, 0xb);
 
 			/* TX BPSK/QPSK BandEdge configure */
-			odm_set_bb_reg(dm, R_0x81c, 0xf, 0x0);
-		} else if (bw == CHANNEL_WIDTH_20) {
+			//odm_set_bb_reg(dm, R_0x81c, 0xf, 0x0);
+		//} else if (bw == CHANNEL_WIDTH_20) {
 			/* @RX DFIR*/
 			odm_set_bb_reg(dm, R_0x810, 0x3ff0, 0x19b);
 
@@ -1323,7 +1323,7 @@ config_phydm_switch_bandwidth_8733b(struct dm_struct *dm, u8 pri_ch,
 
 			/* TX BPSK/QPSK BandEdge configure for SRRC */
 			odm_set_bb_reg(dm, R_0x81c, 0xf, 0x9);
-		}
+		//}
 
 		/* @TX_RF_BW:[1:0]=0x0, RX_RF_BW:[3:2]=0x0 */
 		odm_set_bb_reg(dm, R_0x9b0, 0xf, 0x0);
@@ -1437,6 +1437,20 @@ config_phydm_switch_bandwidth_8733b(struct dm_struct *dm, u8 pri_ch,
 		return false;
 	}
 
+	// Dirty patch: Set 5/10M BB regs after setting RF regs
+	// The original code has correct MAC rate, but output nothing on RF, and I don't know why
+	// Maybe it's a silicon bug
+	if (bw == CHANNEL_WIDTH_5) {
+		odm_set_bb_reg(dm, R_0x9b0, 0xc0, 0x1);
+		odm_set_bb_reg(dm, R_0x9b4, 0x700, 0x1);
+		odm_set_bb_reg(dm, R_0x9f0, 0xf, 0xa);
+		odm_set_bb_reg(dm, R_0x81c, 0xf, 0x0);
+	} else if (bw == CHANNEL_WIDTH_10) {
+		odm_set_bb_reg(dm, R_0x9b0, 0xc0, 0x2);
+		odm_set_bb_reg(dm, R_0x9b4, 0x700, 0x2);
+		odm_set_bb_reg(dm, R_0x9f0, 0xf, 0xb);
+		odm_set_bb_reg(dm, R_0x81c, 0xf, 0x0);
+	}
 
 	phydm_spur_cancellation_8733b(dm);
 
